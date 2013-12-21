@@ -1,5 +1,8 @@
-pkgname=pbar-gh-git
-pkgver=1
+# Maintainer: Moritz Luedecke <ritze@skweez.net>
+# Contributor: Gilrain <pierre.buard+aur gmail com>
+# Contributor: bruenig
+pkgname=pbar
+pkgver=20131221
 pkgrel=1
 pkgdesc="Progress bar in pacman style"
 url="https://github.com/ritze/pbar"
@@ -12,12 +15,10 @@ source=("${pkgname}::git+https://github.com/ritze/pbar.git#branch=master")
 md5sums=('SKIP')
 
 pkgver() {
-  cd "${srcdir}/${pkgname}"
-  echo "0.$(git rev-list --count HEAD).$(git describe --always | sed 's|-|.|g')"
+	cd "$pkgname"
+	git show -s --format="%ci" HEAD | sed -e 's/-//g' -e 's/ .*//'
 }
 
 package() {
-  cd "${srcdir}/${pkgname}"
-  mkdir -p ${pkgdir}/usr/bin
-  install -m 755 pbar ${pkgdir}/usr/bin/pbar
+	install -Dm755 "$srcdir/$pkgname/pbar" "$pkgdir/usr/bin/pbar"
 }
