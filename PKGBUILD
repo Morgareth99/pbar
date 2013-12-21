@@ -1,18 +1,17 @@
-pkgname=packer-gh-git
-pkgver=0.284.e88e879
+pkgname=pbar-gh-git
+pkgver=1
 pkgrel=1
-pkgdesc="Bash wrapper for pacman and the AUR"
-url="https://github.com/gavinhungry/packer"
+pkgdesc="Progress bar in pacman style"
+url="https://github.com/ritze/pbar"
 license="GPL"
 arch=('any')
 makedepends=('git')
-depends=('grep' 'sed' 'bash' 'curl' 'pacman' 'jshon' 'sudo')
-conflicts=('packer')
-optdepends=('customizepkg: apply customizepkg modifications')
-source=("${pkgname}::git+https://github.com/gavinhungry/packer.git#branch=master")
+depends=('bash')
+conflicts=('pbar')
+source=("${pkgname}::git+https://github.com/ritze/pbar.git#branch=master")
 md5sums=('SKIP')
 
-pkgver () {
+pkgver() {
   cd "${srcdir}/${pkgname}"
   echo "0.$(git rev-list --count HEAD).$(git describe --always | sed 's|-|.|g')"
 }
@@ -20,7 +19,5 @@ pkgver () {
 package() {
   cd "${srcdir}/${pkgname}"
   mkdir -p ${pkgdir}/usr/bin
-  mkdir -p ${pkgdir}/usr/share/man/man8
-  install -m 755 packer ${pkgdir}/usr/bin/packer
-  install -m 644 packer.8 ${pkgdir}/usr/share/man/man8/packer.8
+  install -m 755 pbar ${pkgdir}/usr/bin/pbar
 }

@@ -1,5 +1,7 @@
-packer
-======
-packer is a bash wrapper for pacman and the AUR. It was designed to be a simple and very fast replacement for the useful functionality of yaourt.
+pbar
+====
+pbar shows a progress bar in pacman style. 
 
-http://wiki.github.com/bruenig/packer/
+The progress bar code is a fork from the packer method aurbar. (see http://wiki.github.com/bruenig/packer/)
+
+http://wiki.github.com/ritze/pbar/

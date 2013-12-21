@@ -1,0 +1,94 @@
+#!/bin/bash
+# Copyright Matthew Bruenig <matthewbruenig@gmail.com> (packer)
+#           Moritz Lüdecke <ritze@skweez.net>
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+usage() {
+  echo 'usage: pbar [OPTION] DONE TOTAL [TITLE] [DETAILS]...'
+  echo
+  echo '  -n    outputs a new line at the end'
+  echo '  -h    display this help and exit'
+  exit
+}
+
+# This method is a fork from the packer method aurbar
+progbar() {
+	done=$1
+	total=$2
+	title=$3
+	args=($@)
+
+	# Delete line
+	printf "\033[0G"
+
+	# Get vars for output
+	beginline=$title
+	beginbar="["
+	endbar="]"
+	perc="$(($done*100/$total))"
+	width="$(stty size)"
+	width="${width##* }"
+	infolen="$(($width*6/10))"
+	[ $infolen -lt 50 ] && infolen=50
+	charsbefore="$((${#beginline}+1))"
+	for i in $(seq 3 $((${#args[@]} - 1))); do
+		charsbefore="$(($charsbefore+${#args[$i]}+1))"
+	done
+	spaces="$(($infolen-$charsbefore))"
+	barchars="$(($width-$infolen-${#beginbar}-${#endbar}-6))"
+	hashes="$(($barchars*$perc/100))"
+	dashes="$(($barchars-$hashes))"
+
+	# Print output
+	printf "$beginline %${spaces}s"
+	for i in $(seq 3 $((${#args[@]} - 1))); do
+		printf " ${args[$i]}"
+	done
+	printf " ${beginbar}"
+
+	for ((n=0; n<$hashes; n++)); do
+		printf "#"
+	done
+	for ((n=0; n<$dashes; n++)); do
+		printf "-"
+	done
+	printf "%s%4s%%\r" ${endbar} ${perc}
+}
+
+# Argument parsing
+
+[[ $1 ]] || usage
+
+args=$@
+
+if [[ $1 == -n ]]; then
+	args=${args//-n}
+	newline=1
+fi
+
+argsArray=($args)
+int='^[0-9]+$'
+
+if [[ ${#argsArray[@]} -lt 2 ]]	||
+	! [[ ${argsArray[0]} =~ $int ]] ||
+	! [[ ${argsArray[1]} =~ $int ]]; then
+	
+	usage
+fi
+
+progbar $args
+
+[ $newline ] && echo
+
+exit
