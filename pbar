@@ -27,7 +27,8 @@ progbar() {
 	done=$1
 	total=$2
 	title=$3
-	args=($@)
+	cutchars="$((${#1}+1+${#2}+1+${#3}))"
+	misc=${@:4}
 
 	# Delete line
 	printf "\033[0G"
@@ -41,21 +42,14 @@ progbar() {
 	width="${width##* }"
 	infolen="$(($width*6/10))"
 	[ $infolen -lt 50 ] && infolen=50
-	charsbefore="$((${#beginline}+1))"
-	for i in $(seq 3 $((${#args[@]} - 1))); do
-		charsbefore="$(($charsbefore+${#args[$i]}+1))"
-	done
+	charsbefore="$((${#beginline}+1+${#misc}+1))"
 	spaces="$(($infolen-$charsbefore))"
 	barchars="$(($width-$infolen-${#beginbar}-${#endbar}-6))"
 	hashes="$(($barchars*$perc/100))"
 	dashes="$(($barchars-$hashes))"
 
 	# Print output
-	printf "$beginline %${spaces}s"
-	for i in $(seq 3 $((${#args[@]} - 1))); do
-		printf " ${args[$i]}"
-	done
-	printf " ${beginbar}"
+	printf "$beginline %${spaces}s $misc ${beginbar}"
 
 	for ((n=0; n<$hashes; n++)); do
 		printf "#"
