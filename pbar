@@ -28,7 +28,7 @@ progbar() {
 	total=$2
 	title=$3
 	cutchars="$((${#1}+1+${#2}+1+${#3}))"
-	misc=${@:4}
+	misc="$4"
 
 	# Delete line
 	printf "\033[0G"
@@ -64,24 +64,28 @@ progbar() {
 
 [[ $1 ]] || usage
 
-args=$@
-
 if [[ $1 == -n ]]; then
-	args=${args//-n}
+	done=$2
+	total=$3
+	title=$4
+	misc=$5
 	newline=1
+else
+	done=$1
+	total=$2
+	title=$3
+	misc=$4
 fi
 
-argsArray=($args)
 int='^[0-9]+$'
 
-if [[ ${#argsArray[@]} -lt 2 ]]	||
-	! [[ ${argsArray[0]} =~ $int ]] ||
-	! [[ ${argsArray[1]} =~ $int ]]; then
+if [[ $done -eq "" ]]	|| [[ $total -eq "" ]] ||
+	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]]; then
 	
 	usage
 fi
 
-progbar $args
+progbar $done $total $title "$misc"
 
 [ $newline ] && echo
 
