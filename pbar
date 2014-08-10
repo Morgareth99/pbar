@@ -42,6 +42,10 @@ progbar() {
 	width="${width##* }"
 	infolen="$(($width*6/10))"
 	[ $infolen -lt 50 ] && infolen=50
+	if [[ $infolen -lt $((${#beginline}+2+${#misc})) ]]; then
+		beginline=${beginline::$((infolen-${#misc}-5))}
+		beginline=$beginline"..."
+	fi
 	charsbefore="$((${#beginline}+1+${#misc}+1))"
 	spaces="$(($infolen-$charsbefore))"
 	barchars="$(($width-$infolen-${#beginbar}-${#endbar}-6))"
