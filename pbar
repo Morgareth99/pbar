@@ -15,11 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 usage() {
-  echo 'usage: pbar [OPTION] DONE TOTAL [TITLE] [DETAILS]...'
-  echo
-  echo '  -n    outputs a new line at the end'
-  echo '  -h    display this help and exit'
-  exit
+	echo 'usage: pbar [OPTION] DONE TOTAL [TITLE] [DETAILS]...'
+	echo
+	echo '  -n    outputs a new line at the end'
+	echo '  -h    display this help and exit'
+	exit
 }
 
 # This method is a fork from the packer method aurbar
