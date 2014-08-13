@@ -84,7 +84,8 @@ fi
 int='^[0-9]+$'
 
 if [[ $done -eq "" ]]	|| [[ $total -eq "" ]] ||
-	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]]; then
+	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]] ||
+	[[ $done -gt $total ]]; then
 	
 	usage
 fi
