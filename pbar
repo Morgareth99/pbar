@@ -15,8 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 usage() {
-	echo 'usage: pbar [OPTION] DONE TOTAL [TITLE] [DETAILS]...'
+	echo 'usage: pbar [OPTION] [-t DEVICE] DONE TOTAL [TITLE] [DETAILS]...'
 	echo
+	echo '  -t    set the tty device'
 	echo '  -n    outputs a new line at the end'
 	echo '  -h    display this help and exit'
 	exit
@@ -24,11 +25,12 @@ usage() {
 
 # This method is a fork from the packer method aurbar
 progbar() {
-	done=$1
-	total=$2
-	title="$3"
-	cutchars="$((${#1}+1+${#2}+1+${#3}))"
-	misc="$4"
+	tty=$1
+	done=$2
+	total=$3
+	title="$4"
+	cutchars="$((${#2}+1+${#3}+1+${#4}))"
+	misc="$5"
 
 	# Delete line
 	printf "\033[0G"
@@ -38,7 +40,7 @@ progbar() {
 	beginbar="["
 	endbar="]"
 	perc="$(($done*100/$total))"
-	width="$(stty size)"
+	width="$(stty -F $tty size)"
 	width="${width##* }"
 	infolen="$(($width*6/10))"
 	[ $infolen -lt 50 ] && infolen=50
@@ -68,29 +70,52 @@ progbar() {
 
 [[ $1 ]] || usage
 
-if [[ $1 == -n ]]; then
-	done=$2
-	total=$3
-	title=$4
-	misc=$5
-	newline=1
-else
-	done=$1
-	total=$2
-	title=$3
-	misc=$4
-fi
+while getopts ":nt:" optname; do
+	case "$optname" in
+		"t")
+			tty=$OPTARG
+			;;
+		"n")
+			newline=1
+			;;
+		"?")
+			echo "Unknown option $OPTARG"
+			usage
+			;;
+		":")
+			echo "No argument value for option $OPTARG"
+			;;
+		*)
+			echo "Unknown error while processing options"
+			;;
+		esac
+done
+
+done=${@:$OPTIND:1}
+total=${@:$OPTIND+1:1}
+title=${@:$OPTIND+2:1}
+misc=${@:$OPTIND+3:1}
 
 int='^[0-9]+$'
 
+if [[ $tty == "" ]]; then
+	tty=$(tty)
+	if [[ $? -ne 0 ]]; then
+		echo "Can't get tty device!"
+		usage
+	fi
+fi
+
+if [[ $done -gt $total ]]; then
+	done=$total
+fi
+
 if [[ $done -eq "" ]]	|| [[ $total -eq "" ]] ||
-	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]] ||
-	[[ $done -gt $total ]]; then
-	
+	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]]; then
 	usage
 fi
 
-progbar $done $total "$title" "$misc"
+progbar $tty $done $total "$title" "$misc"
 
 [ $newline ] && echo
 
