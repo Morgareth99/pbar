@@ -17,8 +17,9 @@
 usage() {
 	echo 'usage: pbar [OPTION] [-t DEVICE] DONE TOTAL [TITLE] [DETAILS]...'
 	echo
-	echo '  -t    set the tty device'
+	echo '  -i    infinite progressbar'
 	echo '  -n    outputs a new line at the end'
+	echo '  -t    set the tty device'
 	echo '  -h    display this help and exit'
 	exit
 }
@@ -49,11 +50,21 @@ info() {
 	[[ $misc != "" ]] && printf " $misc"
 }
 
+drawsymbol() {
+	symbol=$1
+	num=$2
+
+	for ((n=0; n<$num; n++)); do
+		printf "$symbol"
+	done
+}
+
 # This method is a fork from the packer method aurbar
 progbar() {
 	width=$1
-	done=$2
-	total=$3
+	infinite=$2
+	done=$3
+	total=$4
 
 	# Get vars for output
 	beginbar="["
@@ -66,22 +77,34 @@ progbar() {
 	# Print output
 	printf " ${beginbar}"
 
-	for ((n=0; n<$hashes; n++)); do
-		printf "#"
-	done
-	for ((n=0; n<$dashes; n++)); do
-		printf "-"
-	done
+	if [[ $infinite ]]; then
+		offset="$(($hashes-2))"
+		hashes=3
+		[[ $offset -lt 0 ]] && offset=0 && hashes=2
+		drawsymbol "-" $offset
+
+		offset="$(($offset+$hashes))"
+		[[ $offset -gt $barchars ]] && hashes=2
+		drawsymbol "#" $hashes
+
+		dashes="$(($barchars-$offset))"
+		drawsymbol "-" $dashes
+	else
+		drawsymbol "#" $hashes
+		drawsymbol "-" $dashes
+	fi
+
 	printf "%s%4s%%\r" ${endbar} ${perc}
 }
 
 printline() {
 	tty=$1
-	done=$2
-	total=$3
-	title=$4
-	misc=$5
-	
+	infinite=$2
+	done=$3
+	total=$4
+	title=$5
+	misc=$6
+
 	width=$(screenwidth $tty)
 	infolen="$(($width*6/10))"
 	[ $width -lt 50 ] && width=50
@@ -91,20 +114,23 @@ printline() {
 	printf "\033[0G"
 
 	info $infolen "$title" "$misc"
-	progbar $progbarlen $done $total
+	progbar $progbarlen "$infinite" $done $total
 }
 
 # Argument parsing
 
 [[ $1 ]] || usage
 
-while getopts ":nt:" optname; do
+while getopts ":int:" optname; do
 	case "$optname" in
-		"t")
-			tty=$OPTARG
+		"i")
+			infinite=1
 			;;
 		"n")
 			newline=1
+			;;
+		"t")
+			tty=$OPTARG
 			;;
 		"?")
 			echo "Unknown option $OPTARG"
@@ -134,16 +160,16 @@ if [[ $tty == "" ]]; then
 	fi
 fi
 
-if [[ $done -gt $total ]]; then
-	done=$total
-fi
-
-if [[ $done -eq "" ]]	|| [[ $total -eq "" ]] ||
+if [[ $done -eq "" ]] || [[ $total -eq "" ]] ||
 	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]]; then
 	usage
 fi
 
-printline $tty $done $total "$title" "$misc"
+if [[ $done -gt $total ]]; then
+	done=$total
+fi
+
+printline $tty "$infinite" $done $total "$title" "$misc"
 
 [ $newline ] && echo
 
