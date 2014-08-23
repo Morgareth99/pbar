@@ -23,39 +23,48 @@ usage() {
 	exit
 }
 
-# This method is a fork from the packer method aurbar
-progbar() {
+screenwidth() {
 	tty=$1
-	done=$2
-	total=$3
-	title="$4"
-	cutchars="$((${#2}+1+${#3}+1+${#4}))"
-	misc="$5"
+	width="$(stty -F $tty size)"
+	echo "${width##* }"
+}
 
-	# Delete line
-	printf "\033[0G"
-
+info() {
+	width=$1
+	title=$2
+	misc=$3
+	
 	# Get vars for output
 	beginline=$title
+	misclen=0
+	[[ $misc != "" ]] && misclen=$((1+${#misc}))
+	if [[ $width -lt $((${#beginline}+2+$misclen-1)) ]]; then
+		beginline=${beginline::$((width-$misclen-4))}
+		beginline=$beginline"..."
+	fi
+	spaces="$(($width-${#beginline}-1-$misclen))"
+
+	# Print output
+	printf "$beginline %${spaces}s"
+	[[ $misc != "" ]] && printf " $misc"
+}
+
+# This method is a fork from the packer method aurbar
+progbar() {
+	width=$1
+	done=$2
+	total=$3
+
+	# Get vars for output
 	beginbar="["
 	endbar="]"
 	perc="$(($done*100/$total))"
-	width="$(stty -F $tty size)"
-	width="${width##* }"
-	infolen="$(($width*6/10))"
-	[ $infolen -lt 50 ] && infolen=50
-	if [[ $infolen -lt $((${#beginline}+2+${#misc})) ]]; then
-		beginline=${beginline::$((infolen-${#misc}-5))}
-		beginline=$beginline"..."
-	fi
-	charsbefore="$((${#beginline}+1+${#misc}+1))"
-	spaces="$(($infolen-$charsbefore))"
-	barchars="$(($width-$infolen-${#beginbar}-${#endbar}-6))"
+	barchars="$(($width-${#beginbar}-${#endbar}-6))"
 	hashes="$(($barchars*$perc/100))"
 	dashes="$(($barchars-$hashes))"
 
 	# Print output
-	printf "$beginline %${spaces}s $misc ${beginbar}"
+	printf " ${beginbar}"
 
 	for ((n=0; n<$hashes; n++)); do
 		printf "#"
@@ -64,6 +73,25 @@ progbar() {
 		printf "-"
 	done
 	printf "%s%4s%%\r" ${endbar} ${perc}
+}
+
+printline() {
+	tty=$1
+	done=$2
+	total=$3
+	title=$4
+	misc=$5
+	
+	width=$(screenwidth $tty)
+	infolen="$(($width*6/10))"
+	[ $width -lt 50 ] && width=50
+	progbarlen="$(($width-$infolen))"
+	
+	# Delete line
+	printf "\033[0G"
+
+	info $infolen "$title" "$misc"
+	progbar $progbarlen $done $total
 }
 
 # Argument parsing
@@ -93,7 +121,7 @@ done
 
 done=${@:$OPTIND:1}
 total=${@:$OPTIND+1:1}
-title=${@:$OPTIND+2:1}
+title="${@:$OPTIND+2:1}"
 misc=${@:$OPTIND+3}
 
 int='^[0-9]+$'
@@ -115,7 +143,7 @@ if [[ $done -eq "" ]]	|| [[ $total -eq "" ]] ||
 	usage
 fi
 
-progbar $tty $done $total "$title" "$misc"
+printline $tty $done $total "$title" "$misc"
 
 [ $newline ] && echo
 
