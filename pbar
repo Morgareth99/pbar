@@ -89,12 +89,12 @@ progbar() {
 
 		dashes="$(($barchars-$offset))"
 		drawsymbol "-" $dashes
+		printf "%s\r" ${endbar}
 	else
 		drawsymbol "#" $hashes
 		drawsymbol "-" $dashes
+		printf "%s%4s%%\r" ${endbar} ${perc}
 	fi
-
-	printf "%s%4s%%\r" ${endbar} ${perc}
 }
 
 printline() {
