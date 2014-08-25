@@ -69,9 +69,8 @@ progbar() {
 	# Get vars for output
 	beginbar="["
 	endbar="]"
-	perc="$(($done*100/$total))"
 	barchars="$(($width-${#beginbar}-${#endbar}-6))"
-	hashes="$(($barchars*$perc/100))"
+	hashes="$(($barchars*$done/$total))"
 	dashes="$(($barchars-$hashes))"
 
 	# Print output
@@ -93,6 +92,7 @@ progbar() {
 	else
 		drawsymbol "#" $hashes
 		drawsymbol "-" $dashes
+		perc="$(($done*100/$total))"
 		printf "%s%4s%%\r" ${endbar} ${perc}
 	fi
 }
