@@ -14,13 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+DASH="-"
+HASH="#"
+BEGINBAR="["
+ENDBAR="]"
+INFBAR_UPDATE="0.1"
+
 usage() {
 	echo 'usage: pbar [OPTION] [-t DEVICE] DONE TOTAL [TITLE] [DETAILS]...'
 	echo
-	echo '  -i    infinite progressbar'
+	echo '  -i    infinite progressbar,'
 	echo '  -n    outputs a new line at the end'
 	echo '  -t    set the tty device'
 	echo '  -h    display this help and exit'
+	echo
+	echo 'Examples:'
+	echo '  pbar -n 3 5 "testing..." 3 of 5   Print the follow line:'
+	echo 'testing...                      3 of 5 [##########--------]  60%'
+	echo '  pbar -i 0 0 "testing..."          Print a infinite working progressbar:'
+	echo 'testing...                             [------###---------]'
 	exit
 }
 
@@ -67,33 +79,31 @@ progbar() {
 	total=$4
 
 	# Get vars for output
-	beginbar="["
-	endbar="]"
-	barchars="$(($width-${#beginbar}-${#endbar}-6))"
+	barchars="$(($width-${#BEGINBAR}-${#ENDBAR}-6))"
 	hashes="$(($barchars*$done/$total))"
 	dashes="$(($barchars-$hashes))"
 
 	# Print output
-	printf " ${beginbar}"
+	printf " ${BEGINBAR}"
 
 	if [[ $infinite ]]; then
 		offset="$(($hashes-2))"
 		hashes=3
 		[[ $offset -lt 0 ]] && offset=0 && hashes=2
-		drawsymbol "-" $offset
+		drawsymbol $DASH $offset
 
 		offset="$(($offset+$hashes))"
 		[[ $offset -gt $barchars ]] && hashes=2
-		drawsymbol "#" $hashes
+		drawsymbol $HASH $hashes
 
 		dashes="$(($barchars-$offset))"
-		drawsymbol "-" $dashes
-		printf "%s\r" ${endbar}
+		drawsymbol $DASH $dashes
+		printf "%s     \r" ${ENDBAR}
 	else
-		drawsymbol "#" $hashes
-		drawsymbol "-" $dashes
+		drawsymbol $HASH $hashes
+		drawsymbol $DASH $dashes
 		perc="$(($done*100/$total))"
-		printf "%s%4s%%\r" ${endbar} ${perc}
+		printf "%s%4s%%\r" ${ENDBAR} ${perc}
 	fi
 }
 
@@ -109,7 +119,18 @@ printline() {
 	infolen="$(($width*6/10))"
 	[ $width -lt 50 ] && width=50
 	progbarlen="$(($width-$infolen))"
-	
+
+	if [[ $total -eq 0 ]]; then
+		total=$(($progbarlen-9))
+
+		newdone="$(($done % $total))"
+		if [[ $(($done % $((2*$total)))) -ge $total ]]; then
+			newdone="$(($total-$newdone))"
+		fi	
+		done=$(($newdone+1))
+		total=$(($total+1))
+	fi
+
 	# Delete line
 	printf "\033[0G"
 
@@ -162,15 +183,27 @@ fi
 
 if [[ $done -eq "" ]] || [[ $total -eq "" ]] ||
 	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]]; then
-	usage
+	
+	if [[ $done -ne 0 ]] || [[ $total -ne 0 ]] || [[ $infinite -ne 1 ]]; then
+		usage
+	fi
 fi
 
 if [[ $done -gt $total ]]; then
 	done=$total
 fi
 
-printline $tty "$infinite" $done $total "$title" "$misc"
+if [[ $done -eq 0 ]] && [[ $total -eq 0 ]] && [[ $infinite -eq 1 ]]; then
+	i=0
+	while true; do
+		printline $tty "$infinite" $i 0 "$title" "$misc"
+		i="$(($i+1))"
+		sleep $INFBAR_UPDATE
+	done
+else
+	printline $tty "$infinite" $done $total "$title" "$misc"
+fi
 
-[ $newline ] && echo
+[ $newline ] && echo 
 
 exit
