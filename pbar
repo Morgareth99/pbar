@@ -194,12 +194,18 @@ if [[ $done -gt $total ]]; then
 fi
 
 if [[ $done -eq 0 ]] && [[ $total -eq 0 ]] && [[ $infinite -eq 1 ]]; then
+	trap "exit=true" SIGINT SIGTERM
 	i=0
-	while true; do
+	while [ ! $exit ]; do
 		printline $tty "$infinite" $i 0 "$title" "$misc"
 		i="$(($i+1))"
 		sleep $INFBAR_UPDATE
 	done
+
+	# Delete line
+	printf "\033[0G"
+
+	[ $newline ] && printline $tty "" 1 1 "$title" "$misc" 
 else
 	printline $tty "$infinite" $done $total "$title" "$misc"
 fi
