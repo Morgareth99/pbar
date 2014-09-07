@@ -50,7 +50,9 @@ info() {
 	# Get vars for output
 	beginline=$title
 	misclen=0
-	[[ $misc != "" ]] && misclen=$((1+${#misc}))
+	# Remove color code
+	misctext=$(expr $misc | sed -r "s/\\\033\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")
+	[[ $misc != "" ]] && misclen=$((1+${#misctext}))
 	if [[ $width -lt $((${#beginline}+2+$misclen-1)) ]]; then
 		beginline=${beginline::$((width-$misclen-4))}
 		beginline=$beginline"..."
