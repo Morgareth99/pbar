@@ -42,6 +42,10 @@ screenwidth() {
 	echo "${width##* }"
 }
 
+removeformat() {
+	echo "$(expr "$1" | sed -r "s/\\\033\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")"
+}
+
 info() {
 	width=$1
 	title=$2
@@ -51,13 +55,18 @@ info() {
 	beginline=$title
 	misclen=0
 	# Remove color code
-	misctext=$(expr $misc | sed -r "s/\\\033\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")
-	[[ $misc != "" ]] && misclen=$((1+${#misctext}))
-	if [[ $width -lt $((${#beginline}+2+$misclen-1)) ]]; then
-		beginline=${beginline::$((width-$misclen-4))}
-		beginline=$beginline"..."
+	if [[ $misc != "" ]]; then
+		misctext=$(removeformat "$misc")
+		misclen=$((1+${#misctext}))
 	fi
-	spaces="$(($width-${#beginline}-1-$misclen))"
+	beginlinetext=$(removeformat "$beginline")
+	if [[ $width -lt $((${#beginlinetext}+2+$misclen-1)) ]]; then
+		# Remove color code, cut the text and print it without color code
+		beginlinetext=${beginlinetext::$((width-$misclen-4))}
+		beginline=$beginlinetext"..."
+		beginlinetext=$(removeformat "$beginline")
+	fi
+	spaces="$(($width-${#beginlinetext}-1-$misclen))"
 
 	# Print output
 	printf "$beginline %${spaces}s"
