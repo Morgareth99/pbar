@@ -3,7 +3,7 @@
 # Contributor: bruenig
 pkgname=pbar
 pkgver=20141004
-pkgrel=1
+pkgrel=2
 pkgdesc="Progress bar in pacman style"
 url="https://github.com/ritze/pbar"
 license="GPL"
