@@ -195,7 +195,7 @@ if [[ $tty == "" ]]; then
 	fi
 fi
 
-if [[ $done -eq "" ]] || [[ $total -eq "" ]] ||
+if [[ $total -eq "" ]] ||
 	! [[ $done =~ $int ]] || ! [[ $total =~ $int ]]; then
 	
 	if [[ $done -ne 0 ]] || [[ $total -ne 0 ]] || [[ $infinite -ne 1 ]]; then
