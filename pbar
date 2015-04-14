@@ -183,7 +183,7 @@ done
 done=${@:$OPTIND:1}
 total=${@:$OPTIND+1:1}
 title="${@:$OPTIND+2:1}"
-misc=${@:$OPTIND+3}
+misc="${@:$OPTIND+3}"
 
 int='^[0-9]+$'
 
