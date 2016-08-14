@@ -43,14 +43,14 @@ screenwidth() {
 }
 
 removeformat() {
-	echo "$(expr "$1" | sed -r "s/\\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")"
+	echo "$(echo -e $1 | sed 's/\x1b\[[0-9;]*[m|K]//g')"
 }
 
 info() {
 	width=$1
 	title=$2
 	misc=$3
-	
+
 	# Get vars for output
 	beginline=$title
 	misclen=0
